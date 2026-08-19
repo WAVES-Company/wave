@@ -1,4 +1,4 @@
-# 🌊 Wave — Personal Goal Tracker & Planner
+# 🌊 wave
 
 > **Fast. Simple. Confidential. Offline-First.** Everything you need in one app.
 
@@ -37,7 +37,7 @@
 ## 🛡 Security & Offline Support
 
 * 🔌 **Offline-First Engine:** Fully functional without an internet connection. Once online, local changes automatically sync with the server.
-* 🔐 **WaveSafe:** Advanced data protection utilizing **WS1.0** end-to-end encryption and strict minimal data collection policies.
+* 🔐 **wavesafe:** Advanced data protection utilizing **ws1.0** end-to-end encryption and strict minimal data collection policies.
 
 ---
 
@@ -45,7 +45,7 @@
 
 * **Framework:** [Flutter](https://flutter.dev) (Dart)
 * **Architecture:** Offline-First Data Sync
-* **Encryption Standard:** WaveSafe (WS1.0)
+* **Encryption Standard:** wavesafe (ws1.0)
 
 ---
 
