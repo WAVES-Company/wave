@@ -1,0 +1,86 @@
+name: iOS-ipa-build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: 🎉 iOS Build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          architecture: x64
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # Flutter prepares the Xcode project, Generated.xcconfig,
+      # Podfile integration and other iOS build configuration.
+      # No actual iOS compilation happens here.
+      - name: Prepare iOS project
+        run: flutter build ios --release --no-codesign --config-only
+
+      - name: Install CocoaPods dependencies
+        run: pod install --repo-update
+        working-directory: ios
+
+      # Build directly with Xcode.
+      # Signing is explicitly disabled here, so Xcode does not
+      # require Development Team or Provisioning Profile.
+      - name: Build unsigned iOS app
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/ios/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Check generated app
+        run: |
+          ls -la build/ios/DerivedData/Build/Products/Release-iphoneos/
+          test -d build/ios/DerivedData/Build/Products/Release-iphoneos/Runner.app
+
+      - name: Create Payload
+        run: |
+          mkdir -p build/ios/iphoneos/Payload
+          cp -R build/ios/DerivedData/Build/Products/Release-iphoneos/Runner.app \
+            build/ios/iphoneos/Payload/Runner.app
+
+      - name: Create IPA
+        run: |
+          cd build/ios/iphoneos
+          zip -qq -r -9 FlutterIpaExport.ipa Payload
+
+      - name: Check IPA
+        run: |
+          ls -lh build/ios/iphoneos/FlutterIpaExport.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlutterIpaExport
+          path: build/ios/iphoneos/FlutterIpaExport.ipa
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/ios/iphoneos/FlutterIpaExport.ipa
+          tag: v1.0
+          overwrite: true
+          body: "This is first release"
